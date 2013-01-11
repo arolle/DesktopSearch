@@ -20,7 +20,7 @@ function _:listdbs() as element(option)*
     order by $y
     return
       <option value="{$x}">{
-        $x || " (" || count(doc($x)//(dir|file)) || " Knoten)"
+        $x || " (" || count(doc($x)//(dir|file)) || " nodes)"
       }</option>  
 (:  }</select>:)
 };
