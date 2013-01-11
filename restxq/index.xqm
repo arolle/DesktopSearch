@@ -38,8 +38,9 @@ function _:listfsml(
   $q as xs:string,
   $fsmldb as xs:string
 ) as element(li)* {
-(:  try {
-:)    let $dataroot :=
+  prof:time(
+  try {
+    let $dataroot :=
       try {
         doc($fsmldb)/fsml/@source/data()
       } catch * {error(xs:QName('FSML1'), 'database does not exist')}
@@ -68,28 +69,30 @@ function _:listfsml(
       return fbase:elem($x[1])
     ) (: end let $Matches :)
     
-    let $files := trace($Matches[name(.) = "file"], "files:  ")
-    let $dirs := trace($Matches[name(.) = "dir"], "dirs: ")
+    let $prof := prof:dump(count($Matches),"cnt ")
+    let $files := $Matches[name(.) = "file"]
+    let $dirs := $Matches[name(.) = "dir"]
     let $dirs := $dirs union ($files[@parent-id > 1 and not(@parents-id = $dirs/@node-id)] ! fbase:elem(db:open-id($fsmldb, @parent-id))) (: add dirs for parentless files :)
     let $dirs := $dirs[not(@node-id = $dirs/@parent-id)] (: remove dirs being parents of dirs :)
     let $dirs := filterdir:lcaSet($dirs, $fsmldb)
     return filterdir:generateOutput(
       filterdir:depthCorr(
-        trace(for $x in $files union $dirs
+        for $x in $files union $dirs
         order by $x/@dewey
-        return $x, "files &amp; dirs: ")
+        return $x
       ),
       $fsmldb,
       $dataroot,
       replace(file:resolve-path(".") || file:dir-separator(), file:dir-separator()||"."||file:dir-separator(), file:dir-separator())
     )
-(:   } catch err:FSML1 {
+   } catch err:FSML1 {
     <li class="error">{$fsmldb} ist keine <abbr title="File System Markup Language">FSML</abbr>-Datenbank</li>
   } catch * {
     (: should be triggered whilst entering no XPath
     shortest nonsense possible would be  `/:` :)
     <li class="error">fehlerhafter Ausdruck</li>
-  }:)
+  }
+  )
 };
 
 (:~

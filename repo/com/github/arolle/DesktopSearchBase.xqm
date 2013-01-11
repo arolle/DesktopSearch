@@ -60,7 +60,7 @@ declare function fbase:elem($node as node(), $depth as xs:integer) as element() 
   element {name($node)} {
     attribute {'path'} {fbase:pathFromRootNode($node)},
     attribute {'dewey'} {string-join(($node/ancestor-or-self::*/string(db:node-id(.)))[position()>1], '/')},
-(:    $node/@name,  unnecessary attribute:)
+    $node/@name,
     attribute {'depth'} {$depth},
     attribute {'node-id'} {$node/db:node-id(.)},
     attribute {'parent-id'} {$node/(parent::dir | parent::fsml)/db:node-id(.)} (: performance: group by distinct parents later on, fsml-node has always id 1 :)
