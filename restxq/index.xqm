@@ -10,7 +10,6 @@ import module namespace fbase = "http://arolle.github.com/DesktopSearchBase";
  : @return option-elements containing FSML-DB names
  :)
 declare
-  %restxq:GET
   %restxq:path("listdb")
 function _:listdbs() as element(option)*
 {
@@ -32,7 +31,6 @@ function _:listdbs() as element(option)*
  : 
  :)
 declare
-  %restxq:POST
   %restxq:path("list")
   %restxq:query-param("suchschlitz", "{$q}", "")
   %restxq:query-param("database", "{$fsmldb}", "")
@@ -40,57 +38,63 @@ function _:listfsml(
   $q as xs:string,
   $fsmldb as xs:string
 ) as element(li)* {
-(:  try {
-:)    let $dataroot :=
+  prof:time(
+  try {
+    let $dataroot :=
       try {
         doc($fsmldb)/fsml/@source/data()
       } catch * {error(xs:QName('FSML1'), 'database does not exist')}
+    
+    (: matches: each entry <file> or <dir> :)
     let $Matches := (
-      for $x in 
-        (: every file  (not in root-dir) contained in the returned sequence has to have having a parent dir :)
-        if (substring($q, 1, 1) eq "/") (: first character a slash :)
-
-        (: xpath/xquery expression inserted :)
-        then (
-          (: assurance: get the parent ´file´-node (if any) otherwise the next parent ´dir´-node
-          prevents any nonsense output e.g. ´//attribute::suffix´ now returns all file nodes having a suffix attribute
-          to have same behavior like in BaseX add ´/.´ after query string join
-          e.g. the query ´/´ now returns tree, before an error was thrown
-          but this slows down the query
-           || '/.'
-          :)
-          for $x in xquery:eval("doc('" || $fsmldb || "')/fsml" || $q)
-          return $x/(ancestor-or-self::file | ancestor-or-self::dir[1])
-        )
+      for $x in (
+        (: /XPath means $q is an XPath expression starting with a forward slash :)
+        if (substring(trace($q, "$q = "), 1, 1) eq "/")
+        then xquery:eval(trace("doc('" || $fsmldb || "')/fsml" || $q, "query: "))/(ancestor-or-self::file | ancestor-or-self::dir[1])
         
-        else if (ends-with($q, "/")) (: last character is a slash :)
-        
-        (: search for some dir-path expression
-          a path like tmp/foo/bar/
-          resolves to /dir[@name='tmp']/dir[@name='foo']/dir[@name='bar']
+        (: directory-path/ means $x is a path expression ending with a forward slash
+          for given directory path a fitting XQuery is generated
+          e.g.  foo/bar/   resolves to   /dir[@name='foo']/dir[@name='bar']
         :)
-        then xquery:eval(trace("doc('" || $fsmldb || "')/fsml" || _:path-to-fsmlquery($q) || "//(file | dir)", "query: "))
+        else if (ends-with($q, "/"))
+        then xquery:eval(trace("doc('" || $fsmldb || "')/fsml/" || _:path-to-fsmlquery($q) || "//(file | dir)", "query: "))
         
-        (: search for word in filename :)
+        (: search for word in file or dirname :)
         else doc($fsmldb)//(file | dir)[contains(lower-case(@name), lower-case($q))]
-
+      )
       let $id := $x/db:node-id(.)
       group by $id (: now: no more duplicates :)
       return fbase:elem($x[1])
-    )
+    ) (: end let $Matches :)
+    
+    let $files := $Matches[name() = "file"]
+    let $dirs := $Matches[name() = "dir"]
+    let $dirs := $dirs union fbase:removeDup("parent-id", $files[@parent-id > 1 and not(@parent-id = $dirs/@node-id)]) ! fbase:elem(db:open-id($fsmldb, @parent-id)) (: add dirs for parentless files :)
+    let $dirs := filterdir:lcaSet($dirs, $fsmldb)
+    (:let $prof := 
+        prof:dump(
+          for $x in $files union $dirs
+          order by $x/@path
+          return $x, "ordered all elems "
+        ):)
     return filterdir:generateOutput(
-      filterdir:depthCorr(filterdir:lcaSet(filterdir:minimize($Matches), $fsmldb)),
+      filterdir:depthCorr(
+        for $x in $files union $dirs
+        order by $x/@dewey
+        return $x
+      ),
       $fsmldb,
       $dataroot,
       replace(file:resolve-path(".") || file:dir-separator(), file:dir-separator()||"."||file:dir-separator(), file:dir-separator())
     )
-(:   } catch err:FSML1 {
+   } catch err:FSML1 {
     <li class="error">{$fsmldb} ist keine <abbr title="File System Markup Language">FSML</abbr>-Datenbank</li>
   } catch * {
     (: should be triggered whilst entering no XPath
     shortest nonsense possible would be  `/:` :)
     <li class="error">fehlerhafter Ausdruck</li>
-  }:)
+  }
+  )
 };
 
 (:~

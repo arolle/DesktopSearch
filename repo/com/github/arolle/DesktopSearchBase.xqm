@@ -12,6 +12,25 @@ module namespace fbase = "http://arolle.github.com/DesktopSearchBase";
 import module namespace functx = "http://www.functx.com";
 
 
+(:~
+ : remove duplicates from given set via grouping
+ : 
+ : @param $attr name of attribute to group by
+ : @param $M sequence having attribute $attr
+ : @return sequence $M without duplicates
+ :)
+declare
+function fbase:removeDup (
+  $attr as xs:string,
+  $M as element()*
+) as element()* {
+  for $x in $M
+  let $id := $x/attribute::*[name() = $attr]
+  group by $id
+  return $x[1]
+};
+
+
 (: echo path to given node, from root node :)
 declare function fbase:pathFromRootNode($element as node()) as xs:string {
   $element/string-join(ancestor-or-self::*/@name, '/')
@@ -43,7 +62,9 @@ declare function fbase:elem($node as node(), $depth as xs:integer) as element() 
   element {name($node)} {
     attribute {'path'} {fbase:pathFromRootNode($node)},
     attribute {'dewey'} {string-join(($node/ancestor-or-self::*/string(db:node-id(.)))[position()>1], '/')},
-    $node/@name,
+    if (name($node) = "dir")
+    then $node/@name
+    else (),
     attribute {'depth'} {$depth},
     attribute {'node-id'} {$node/db:node-id(.)},
     attribute {'parent-id'} {$node/(parent::dir | parent::fsml)/db:node-id(.)} (: performance: group by distinct parents later on, fsml-node has always id 1 :)

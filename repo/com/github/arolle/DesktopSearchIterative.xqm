@@ -2,119 +2,55 @@
  : 
  : 
  : order functions are applied in:
- :  1. _:minimize
- :  2. _:lcaSet
- :  3. _:depthsCorr
- :  4. _:generateOutput
+ :  1. minimize
+ :  2. lcaSet
+ :  3. depthsCorr
+ :  4. generateOutput
  :)
 module namespace _ = "http://arolle.github.com/DesktopSearchIterative";
 import module namespace functx = "http://www.functx.com";
-import module namespace fbase = "http://arolle.github.com/DesktopSearchBase" at "/Users/mag/github/local/DesktopSearch/repo/com/github/arolle/DesktopSearchBase.xqm";
-
-
-(:~
- : Minimizes a tree of file and dir elements
- : The minimized tree has the following 
- : property:
- : there is no node having
- : exactly one dir-child
- : 
- : The returned sequence is ordered by the
- : attributes @path or @dewey
- : 
- : @param $M sequence of file or dir elements
- : @return sequence of file or dir elements
- :)
-declare function _:minimize(
-  $M as element()*
-) as element()* {
-  for $x in
-  (
-    (: generate duplicates (to be deleted) for nodes that are not necessary :)
-    for $x in $M
-    let $children := $M[@parent-id = $x/@node-id]
-    where empty($children/self::file) and count($children) = 1 (: exactly one dir-childnode :)
-    return element {name($x)} {
-      $x/@path, $x/@dewey, $x/@name,
-      attribute {'depth'} {-2}, $x/@node-id, $x/@parent-id
-    }
-    ,$M (: assuming sort-algorithm is stable -> new nodes will be prefered :)
-  )
-  let $id := $x/@node-id
-  group by $id
-  order by $x[1]/@dewey (: ordering necessary for output :)
-  return $x[1][@depth > -1] (: exclude if node was found before (since sort algo is stable the negative depth will be first in grouping) :)
-};
-
-(: recursive minimization :)
-declare
-function _:minimize2 (
-  $M as element()*
-) as element()* {
-  $M[not(@parent-id = $M/@node-id)]
-  
-  
-(:  if (empty($M))
-  then ()
-  else
-    let $x := head($M),
-        $tail := tail($M),
-        $children := $M[@parent-id = $x/@node-id]
-    return (
-      (: include $x in resultset iff has not exactly one dir-child and does not occur later on :)
-      if (count($children) = 1 or not($children/self::file) or empty($M[$x/@node-id = ./@node-id]))
-      then $x
-      else (),
-      _:minimize2($tail)
-    )
-:)};
-
-
+import module namespace fbase = "http://arolle.github.com/DesktopSearchBase";
 
 
 (:
- : Creates a ordered set of items necessary
- : for a minimal tree containing all given nodes
+ : Creates a set of dir-items necessary
+ : for a minimal tree containing all given dir-nodes
  : 
- : @param $M set of file and dir-elements
+ : @param $M set of dir-elements
  : @param $DB name of the db where items in $M refer to
  : @return ordered set
  :)
 declare function _:lcaSet(
-  $M as element()*,
+  $M as element(dir)*,
   $DB as xs:string
 ) as element()* {
-  if (count($M) < 1)
-  then $M
-  else 
-  (: duplicate filtering from $M and found parents :)
-  for $x in ($M,
-    (: performance: lca for distinct parents
-      in total: $num * (-1 + $num)/2 loops
-    :)
-    let $nodesDP := 
+  (: remove duplicates by node-id :)
+  fbase:removeDup("node-id",
     (
-      for $x in $M[@parent-id > 1] (: not including direct root descendents :)
-      let $parent-id := $x/@parent-id
-      where not($parent-id = $M/@node-id) (: is direct parent in $M? -> no calculation for this node :)
-      group by $parent-id
-      return $x[1]
+      $M, (: include given nodes in output :)
+
+      (: lca for smallest set possible since runtime is
+         $num * (-1 + $num)/2 loops O(n^2) :)
+      
+      (: minimum set for which to get lcas, i.e.
+        exclude childs of root from lca search
+        and lca only for all different @parent-id nodes :)
+      let $minLcaSet := fbase:removeDup("parent-id", $M[@parent-id > 1])
+      (: remove dirs being parents of dirs :)
+      let $minLcaSet := $minLcaSet[not(@node-id = $minLcaSet/@parent-id)]
+      
+      let $num := count($minLcaSet)
+      for $i in 1 to $num -1
+      for $j in $i+1 to $num
+      let $lca := fbase:lca(
+        db:open-id($DB, $minLcaSet[$i]/@node-id),
+        db:open-id($DB, $minLcaSet[$j]/@node-id)
+      )
+      return if($lca[2])
+        then fbase:elem($lca[2], $lca[1])
+        else ()
     )
-    let $num := count($nodesDP)
-    for $i in 1 to $num -1
-    for $j in $i+1 to $num
-    let $lca := fbase:lca(
-      db:open-id($DB, $nodesDP[$i]/@node-id),
-      db:open-id($DB, $nodesDP[$j]/@node-id)
-    )
-    return if(not(empty($lca[2])))
-      then (fbase:elem($lca[2], $lca[1]))
-      else ()
   )
-  let $id := $x/@node-id
-  group by $id
-  order by $x[1]/@dewey (: ordering necessary for output :)
-  return $x[1]
 };
 
 
@@ -159,13 +95,12 @@ declare function _:generateOutput(
   $DB as xs:string,
   $dataRoot as xs:string,
   $serverRoot as xs:string
-) as node()* {
+) as element(li)* {
   let $depth := min($nodes/@depth)
   let $depthNodes := $nodes[@depth = $depth]
   let $childNodes := $nodes[@depth > $depth]
   for $x in $depthNodes
-  let $type := name($x)
-  order by $type, $x/@path (: folders on top, "dir < file" :)
+  order by $x/name(), $x/@path (: folders on top, "dir < file" :)
   return
     switch (name($x))
     case "file" return fbase:fileOutput(db:open-id($DB, $x/@node-id), $dataRoot, $serverRoot)
