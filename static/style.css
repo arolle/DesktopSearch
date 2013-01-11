@@ -1,0 +1,173 @@
+/* always show scrollbars - prevent flickering */
+html {overflow-y: -moz-scrollbars-vertical;overflow-y: scroll;font-family:Helvetica,"Helvetica Neue",Arial}
+
+body {margin:0 auto;max-width:800px;padding-top:5.6601em;}
+
+form {padding:0;
+position:fixed;top:0;left:0;right:0;z-index:44;background:#fff; /*width:80%;position:fixed;top:0;left:0;right:0;margin:0 auto;z-index:2;background:#fff; for fixed */
+border-bottom:1px solid #AAA;}
+form>* {margin:0 auto;max-width:800px;}
+input#suchschlitz {width:100%;display:block;margin:1.667em 0;}
+form li{display:inline-block;padding:0 0 0 1.667em;float:right}
+form li.elem{float:none}
+
+form li#list span:before{content:"\2630\00A0\00A0\00A0";}
+form li#columns span:before{content:"\2759\200A\2759\200A\2759\00A0\00A0\00A0";}
+
+/* TODO Variante * /
+ul.root li{position:static;}
+.root li > div {display:none;border-width:0;position:fixed;top:5em;bottom:0;right:0;left:auto;width:50%;z-index:42;padding:.83em}
+/**/
+
+li.loading, li.error,
+ul.root:empty:after {line-height:54px;display:block;width:100%;font-weight:bold;color:#999;padding-top:1em}
+ul.root:empty:after {content:'\2205';font-size:400%;}
+ul.root.multiCol:empty {border:0;}
+li.loading:before {}
+li.error {color: #900;}
+
+body ul.root.multiCol {width:300px !important}
+.root li a>span {color:#CCC;color:#1772D7;padding: 0 0.3em;}
+.root li:hover > a+div,
+.root li > a:focus+div {background-color:#EDB;}
+
+.root li>a[data-node-id]:last-child {cursor:pointer}
+.root li>a[data-node-id]:not([href]):last-child:after {color:#CCC;position:static;content:"\00A0\21A9";}
+.root li>a[data-node-id]:last-child:hover:after {color:#1772D7;}
+
+.root li>a[href] {font-weight:normal;}
+.root li>a:not([href]){font-weight:bold;}
+
+/* screenreader - move out of visible area */
+label[for=suchschlitz] {position:absolute;top:-999em;left:-999em}
+
+/* hide */
+input[type=submit] {display:none;}
+
+
+/* Tabs
+	source: http://css-tricks.com/better-tabs-with-round-out-borders/
+*/
+.tabrow {
+text-align: left;
+list-style: none;
+overflow: hidden;
+position: relative;
+padding:0 10px;
+/*margin:0;*/
+bottom:-1px;
+}
+.tabrow li.elem {
+cursor:pointer;
+border: 1px solid #AAA;
+background: #D1D1D1;
+background: -o-linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
+background: -ms-linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
+background: -moz-linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
+background: -webkit-linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
+background: linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
+display: inline-block;
+position: relative;
+z-index: 0;
+border-top-left-radius: 6px;
+border-top-right-radius: 6px;
+box-shadow: 0 3px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 #FFF;
+text-shadow: 0 1px #FFF;
+margin: 0 -5px;
+padding:0 0.833em;
+}
+.tabrow li.elem.selected {
+background: #FFF;
+color: #333;
+z-index: 2;
+border-bottom-color: #FFF;
+}
+.tabrow:before {
+position: absolute;
+content: " ";
+width: 100%;
+bottom: 0;
+left: 0;
+border-bottom: 1px solid #AAA;
+z-index: 1;
+}
+.tabrow li.elem:before,
+.tabrow li.elem:after {
+border: 1px solid #AAA;
+position: absolute;
+bottom: -1px;
+width: 5px;
+height: 5px;
+content: " ";
+}
+.tabrow li.elem:before {
+left: -6px;
+border-bottom-right-radius: 6px;
+border-width: 0 1px 1px 0;
+box-shadow: 2px 2px 0 #D1D1D1;
+}
+.tabrow li.elem:after {
+right: -6px;
+border-bottom-left-radius: 6px;
+border-width: 0 0 1px 1px;
+box-shadow: -2px 2px 0 #D1D1D1;
+}
+.tabrow li.elem.selected:before {
+box-shadow: 2px 2px 0 #FFF;
+}
+.tabrow li.elem.selected:after {
+box-shadow: -2px 2px 0 #FFF;
+}
+
+
+/* spinner
+	http://37signals.com/svn/posts/2577-loading-spinner-animation-using-css-and-webkit
+*/
+ul.root li>div.spinner {display:block;position:relative;float:left;top:auto;left:auto;right:auto;bottom:auto;}
+div.spinner {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      display: inline-block;
+    }
+    
+    div.spinner div {
+      width: 12%;
+      height: 26%;
+      background: #000;
+      position: absolute;
+      left: 44.5%;
+      top: 37%;
+      opacity: 0;
+      -webkit-animation: fade 1s linear infinite;
+      -webkit-border-radius: 50px;
+      -webkit-box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    }
+    
+    div.spinner div.bar1 {-webkit-transform:rotate(0deg) translate(0, -142%); -webkit-animation-delay: 0s;}    
+    div.spinner div.bar2 {-webkit-transform:rotate(30deg) translate(0, -142%); -webkit-animation-delay: -0.9167s;}
+    div.spinner div.bar3 {-webkit-transform:rotate(60deg) translate(0, -142%); -webkit-animation-delay: -0.833s;}
+    div.spinner div.bar4 {-webkit-transform:rotate(90deg) translate(0, -142%); -webkit-animation-delay: -0.75s;}
+    div.spinner div.bar5 {-webkit-transform:rotate(120deg) translate(0, -142%); -webkit-animation-delay: -0.667s;}
+    div.spinner div.bar6 {-webkit-transform:rotate(150deg) translate(0, -142%); -webkit-animation-delay: -0.5833s;}
+    div.spinner div.bar7 {-webkit-transform:rotate(180deg) translate(0, -142%); -webkit-animation-delay: -0.5s;}
+    div.spinner div.bar8 {-webkit-transform:rotate(210deg) translate(0, -142%); -webkit-animation-delay: -0.41667s;}
+    div.spinner div.bar9 {-webkit-transform:rotate(240deg) translate(0, -142%); -webkit-animation-delay: -0.333s;}
+    div.spinner div.bar10 {-webkit-transform:rotate(270deg) translate(0, -142%); -webkit-animation-delay: -0.25s;}
+    div.spinner div.bar11 {-webkit-transform:rotate(300deg) translate(0, -142%); -webkit-animation-delay: -0.1667s;}
+    div.spinner div.bar12 {-webkit-transform:rotate(330deg) translate(0, -142%); -webkit-animation-delay: -0.0833s;}
+
+     @-webkit-keyframes fade {
+      from {opacity: 1;}
+      to {opacity: 0.25;}
+    }
+
+/* Icons in Firefox */
+.root li a[href] {background-repeat: no-repeat;background-position:0.315em center;}
+.root li a[href$=".php"] {background-image:url(moz-icon://.php?size=16)}
+.root li a[href$=".txt"] {background-image:url(moz-icon://.txt?size=16)}
+.root li a[href$=".js"] {background-image:url(moz-icon://.js?size=16)}
+.root li a[href$=".mp4"] {background-image:url(moz-icon://.mp4?size=16)}
+.root li a[href$=".pdf"] {background-image:url(moz-icon://.pdf?size=16)}
+.root li a[href$=".mp3"] {background-image:url(moz-icon://.mp3?size=16)}
+.root li a[href$=".jpg"] {background-image:url(moz-icon://.jpg?size=16)}

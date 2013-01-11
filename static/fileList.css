@@ -1,0 +1,185 @@
+/*
+dirs to be addressed with
+:not([href]), [href$="/"]
+
+
+#### tree options
+
+main presentation style
+.indentList	tree is shown as a list where childnodes are indented
+.multiCol	sets visual appearance to multicolumns, instead of inline. The folder’s items
+		will beshown aside. Probably useless without .openOnHover due to overlapping
+
+
+other options
+.openOnHover	hides childnodes, but on hover they are revealed.
+		JS enabled: reveal childnodes only if li.open
+.onHoverDepthTwo	opens all childnode in max 2 levels distance to element hovered over, not to use on .multiCol
+.counter 	counter-feature 	shows number of li's contained in a ul (number of items contained in a folder)
+.zebra	alternately coloured rows 	truly alternating - each first childnode's colour is different from the nodes’ one
+
+
+(toggle commentary to de-/activate:)
+haptic	links buttonlike, 1px down on hover
+*/
+
+
+/*
+#### LAYOUT
+anything concerning positioning and behaviour (float, display, position, border-width)
+
+base unit: 1.667em (scale 3.334 / . /0.8335 / 0.41675)
+
+*/
+.root,
+.root ul {margin:0;padding:0;border:0;}/* TODO stick to the grid*/
+
+.root li {list-style:none;position:relative;}
+
+.root li  > a {display:block;margin:0;padding:0;padding-left:1.667em;
+white-space: nowrap;overflow: hidden;text-overflow: ellipsis;-o-text-overflow: ellipsis;-ms-text-overflow: ellipsis;}
+.root li a > span {padding: 0 0.3em;}
+
+/* not satisfied * /
+.root li > a:hover,
+.root li > a:focus {white-space: normal;overflow:visible;text-overflow: visible;-o-text-overflow: visible;-ms-text-overflow: visible;}
+
+
+/* defining media/other elements in theye list (meaning anything despite an a-tag) */
+.root li > div {display:none;border-width:0 1px 1px;position:absolute;top:auto;right:0;left:1.667em;z-index:5;padding:.833em}
+
+.root li {position:relative;}
+.root li > a:hover + div,
+.root li:hover > a + div,
+.root li > a:focus + div {display:block;}
+
+.root li > div figure {padding:0;}
+.root li > div dl dt{margin:0;padding:0;float:left;clear:left;}
+.root li > div dl dd{padding-left:4em;}
+
+.root li:hover > a+div,
+.root li > a:focus+div {border-style:solid;border-color:#ccc;}
+
+
+/* tree opens on hover, or always opened, not accessibility friendly yet */
+.root.openOnHover ul {display:none;}
+.root.openOnHover li:hover > ul {display:block;z-index:2;}
+.root.js.openOnHover li.open > ul {display:block;z-index:2;}
+.root.js.openOnHover li:hover > ul {display:none;}
+.root.js.openOnHover li.open:hover > ul {display:block;z-index:2;}
+
+
+/*
+ * OPTIONS: main presentation styles
+ */
+.root.indentList ul {border-width:0 0 1px 1px;}
+.root.indentList ul {padding:1px 0 1px 0;margin-bottom:1px}
+.root.indentList ul li {margin-left:1.667em;}/* margin due to hovering (not padding) */
+
+.root.nerdView {font-family:Monaco;}
+.root.nerdView,
+.root.nerdView ul {border-width:0}
+.root.nerdView li {clear:both;}
+.root.nerdView li > a[href$="/"],
+.root.nerdView li > a:not([href]) {float:left;clear:left;}
+.root.nerdView li > a[href$="/"]+ul,
+.root.nerdView li > a:not([href])+ul {float:left;clear:right;}
+.root.nerdView li > a[href$="/"]:after,
+.root.nerdView li > a:not([href]):after {content:"/";}
+
+
+.root.multiCol {width:300px;}
+.root.multiCol,
+.root.multiCol ul {border-width:1px;}
+/* .root.js.multiCol {width:100%;}*/
+.root.multiCol li > ul {position:absolute;top:-1px;right:-100%;width:100%;}
+.root.multiCol li.open > ul li:first-child {position:relative;left:-1px;}
+.root.multiCol li a[href$="/"]:after,
+.root.multiCol li a:not([href]):after {content:"\25BB\00A0";position:absolute;right:0;}
+.root.multiCol li a[href$="/"]:last-child:after,
+.root.multiCol li a:not([href]):last-child:after {content:""}/* triggerd if no ul is there (meaning no children) */
+.root.multiCol ul:after {position:absolute;top:0;font-size:.83em;content:'\00A0\25B6\00A0';top:0;right:0;text-align:right;margin-right:100%;display:block;width:auto}
+
+
+/* counter feature; used no-breaking space and arrow > (UNICODE) */
+.root.counter li:first-child {counter-reset:list 0;}
+.root.counter ul > li {counter-increment:list;}
+.root.counter ul:after {position:absolute;top:0;content:'\00A0'counter(list)'\00A0';font-size:.83em}
+.root.counter.indentList ul:after {left:0;width:1.667em;display:block;text-align:center;overflow:hidden;}
+.root.counter.indentList ul:after {left:0;}
+.root.counter.multiCol ul:after {z-index:3}
+.root.counter.multiCol ul:after {content:counter(list) '\00A0\25B6\00A0';top:1px;right:0;text-align:right;margin-right:100%;display:block;width:auto}
+
+
+/* show folders of depth 2 on hover (only); not to use with .multiCol
+ * TODO change behaviour */
+.root.onHoverDepthTwo li:hover > ul ul {display:block;}
+.root.js.onHoverDepthTwo li:hover > ul ul {display:none;}
+.root.js.onHoverDepthTwo li:hover li.open ul {display:block;}
+
+/*
+#### UX
+disable drag'n drop / selection of elements
+* /
+.root li > a:first-child {-moz-user-select:-moz-none;-webkit-user-select:none;user-select:none;}
+.root li > a:first-child {-moz-user-drag:-moz-none;-webkit-user-drag:none;user-drag:none;}
+
+/* haptic: puts links one px down on hover * /
+.root li:hover > a {position:relative;top:1px;}
+
+
+/*
+#### STYLE
+anything that does not change the positioning (colours, shadows, ...)
+
+#ECF3FE	ultra lightblue (bg)
+#0bc	turquoise ()
+
+for alternating rows: #F0F0F0 (Finder), #F6F7f9 (iTunes), #CCDCF3 (Mail)
+*/
+.root,
+.root ul {background-color:#fff;border-color:#ccc;border-style:solid;}
+
+.root li,
+.root ul li {list-style-type:none;}
+
+.root li > a {color:#666;text-decoration:none;text-shadow: 1px 1px 1px #fff;}
+.root li a > span {color:#CCC;}
+.root li > a[href$="/"],
+.root li > a:not([href]) {font-weight:bold;}
+
+.root li > a:focus,
+.root li:hover > a {background-color:#EDB;color:#333}
+.root li > a:focus {background-color:#EDB;color:#000;outline:none;}
+
+.root li:hover > ul,
+.root li a:focus+ul {border-color:#EDB;}
+
+/* openOnHover feature */
+.root.openOnHover li > a[href$="/"],
+.root.openOnHover li > a:not([href]) {cursor:pointer}
+
+/* item-count style */
+.root.counter ul:after {color:#333;text-shadow: 1px 1px 1px #fff;filter: dropshadow(color=#fff, offx=1, offy=1); background: rgba(255,255,255,.3);}
+.root.counter.multiCol ul:after {}
+.root.counter.indentList ul:after {}
+
+
+/*
+	nested list zebra stripes
+	http://dreie.lima-city.de/?zebraaa
+*/
+.root.zebra li:nth-child(odd) {background-color:#ECF3FE;}
+.root.zebra li:nth-child(even) {background-color:#FFF}
+
+.root.zebra li:nth-child(odd) li:nth-child(odd) {background-color:#FFF;}
+.root.zebra li:nth-child(odd) li:nth-child(even) {background-color:#ECF3FE;}
+
+.root.zebra li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) {background-color:#ECF3FE;}
+.root.zebra li:nth-child(odd) li:nth-child(odd) li:nth-child(even) {background-color:#FFF;}
+
+.root.zebra li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) {background-color:#FFF;}
+.root.zebra li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) li:nth-child(even) {background-color:#ECF3FE;}
+
+.root.zebra li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) {background-color:#ECF3FE;}
+.root.zebra li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) li:nth-child(odd) li:nth-child(even) {background-color:#FFF;}
