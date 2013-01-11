@@ -10,7 +10,6 @@ import module namespace fbase = "http://arolle.github.com/DesktopSearchBase";
  : @return option-elements containing FSML-DB names
  :)
 declare
-  %restxq:GET
   %restxq:path("listdb")
 function _:listdbs() as element(option)*
 {
@@ -32,7 +31,6 @@ function _:listdbs() as element(option)*
  : 
  :)
 declare
-  %restxq:POST
   %restxq:path("list")
   %restxq:query-param("suchschlitz", "{$q}", "")
   %restxq:query-param("database", "{$fsmldb}", "")
@@ -45,41 +43,42 @@ function _:listfsml(
       try {
         doc($fsmldb)/fsml/@source/data()
       } catch * {error(xs:QName('FSML1'), 'database does not exist')}
+    
+    (: duplicate free matches
+      each entry <file> or <dir>
+    :)
     let $Matches := (
-      for $x in 
-        (: every file  (not in root-dir) contained in the returned sequence has to have having a parent dir :)
-        if (substring($q, 1, 1) eq "/") (: first character a slash :)
-
-        (: xpath/xquery expression inserted :)
-        then (
-          (: assurance: get the parent ´file´-node (if any) otherwise the next parent ´dir´-node
-          prevents any nonsense output e.g. ´//attribute::suffix´ now returns all file nodes having a suffix attribute
-          to have same behavior like in BaseX add ´/.´ after query string join
-          e.g. the query ´/´ now returns tree, before an error was thrown
-          but this slows down the query
-           || '/.'
-          :)
-          for $x in xquery:eval("doc('" || $fsmldb || "')/fsml" || $q)
-          return $x/(ancestor-or-self::file | ancestor-or-self::dir[1])
-        )
+      for $x in (
+        (: /XPath means $q is an XPath expression starting with a forward slash :)
+        if (substring(trace($q, "$q = "), 1, 1) eq "/")
+        then xquery:eval(trace("doc('" || $fsmldb || "')/fsml" || $q, "query: "))/(ancestor-or-self::file | ancestor-or-self::dir[1])
         
-        else if (ends-with($q, "/")) (: last character is a slash :)
-        
-        (: search for some dir-path expression
-          a path like tmp/foo/bar/
-          resolves to /dir[@name='tmp']/dir[@name='foo']/dir[@name='bar']
+        (: directory-path/ means $x is a path expression ending with a forward slash
+          for given directory path a fitting XQuery is generated
+          e.g.  foo/bar/   resolves to   /dir[@name='foo']/dir[@name='bar']
         :)
-        then xquery:eval(trace("doc('" || $fsmldb || "')/fsml" || _:path-to-fsmlquery($q) || "//(file | dir)", "query: "))
+        else if (ends-with($q, "/"))
+        then xquery:eval(trace("doc('" || $fsmldb || "')/fsml/" || _:path-to-fsmlquery($q) || "//(file | dir)", "query: "))
         
-        (: search for word in filename :)
+        (: search for word in file or dirname :)
         else doc($fsmldb)//(file | dir)[contains(lower-case(@name), lower-case($q))]
-
+      )
       let $id := $x/db:node-id(.)
       group by $id (: now: no more duplicates :)
       return fbase:elem($x[1])
-    )
+    ) (: end let $Matches :)
+    
+    let $files := trace($Matches[name(.) = "file"], "files:  ")
+    let $dirs := trace($Matches[name(.) = "dir"], "dirs: ")
+    let $dirs := $dirs union ($files[@parent-id > 1 and not(@parents-id = $dirs/@node-id)] ! fbase:elem(db:open-id($fsmldb, @parent-id))) (: add dirs for parentless files :)
+    let $dirs := $dirs[not(@node-id = $dirs/@parent-id)] (: remove dirs being parents of dirs :)
+    let $dirs := filterdir:lcaSet($dirs, $fsmldb)
     return filterdir:generateOutput(
-      filterdir:depthCorr(filterdir:lcaSet(filterdir:minimize($Matches), $fsmldb)),
+      filterdir:depthCorr(
+        trace(for $x in $files union $dirs
+        order by $x/@dewey
+        return $x, "files &amp; dirs: ")
+      ),
       $fsmldb,
       $dataroot,
       replace(file:resolve-path(".") || file:dir-separator(), file:dir-separator()||"."||file:dir-separator(), file:dir-separator())
