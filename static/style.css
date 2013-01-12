@@ -1,12 +1,14 @@
 /* always show scrollbars - prevent flickering */
 html {overflow-y: -moz-scrollbars-vertical;overflow-y: scroll;font-family:Helvetica,"Helvetica Neue",Arial}
 
-body {margin:0 auto;max-width:800px;padding-top:5.6601em;}
+body {padding-top:5.6601em;margin:0;width:auto;}
+body>ul.root {margin:0 auto;max-width:800px;display:block;}
 
 form {padding:0;
 position:fixed;top:0;left:0;right:0;z-index:44;background:#fff; /*width:80%;position:fixed;top:0;left:0;right:0;margin:0 auto;z-index:2;background:#fff; for fixed */
 border-bottom:1px solid #AAA;}
 form>* {margin:0 auto;max-width:800px;}
+form > p {position:relative;}
 input#suchschlitz {width:100%;display:block;margin:1.667em 0;}
 form li{display:inline-block;padding:0 0 0 1.667em;float:right}
 form li.elem{float:none}
@@ -23,23 +25,27 @@ li.loading, li.error,
 ul.root:empty:after {line-height:54px;display:block;width:100%;font-weight:bold;color:#999;padding-top:1em}
 ul.root:empty:after {content:'\2205';font-size:400%;}
 ul.root.multiCol:empty {border:0;}
+
 li.loading:before {}
+ul.root li.loading {background:#FFF !important;height:6em;}
 li.error {color: #900;}
 
+body>ul.root.multiCol {margin:0;max-width:auto;}
 body ul.root.multiCol {width:300px !important}
 .root li a>span {color:#CCC;color:#1772D7;padding: 0 0.3em;}
 .root li:hover > a+div,
 .root li > a:focus+div {background-color:#EDB;}
 
-.root li>a[data-node-id]:last-child {cursor:pointer}
-.root li>a[data-node-id]:not([href]):last-child:after {color:#CCC;position:static;content:"\00A0\21A9";}
-.root li>a[data-node-id]:last-child:hover:after {color:#1772D7;}
+.root li>a[data-path]:last-child {cursor:pointer}
+.root li>a[data-path]:not([href]):last-child:after {color:#CCC;position:static;content:"\00A0\21A9";}
+.root li>a[data-path]:last-child:hover:after {color:#1772D7;}
 
 .root li>a[href] {font-weight:normal;}
 .root li>a:not([href]){font-weight:bold;}
 
 /* screenreader - move out of visible area */
 label[for=suchschlitz] {position:absolute;top:-999em;left:-999em}
+label[for=suchschlitz] {position:absolute;top:0;left:-101%;text-align:right;display:block;width:100%;padding:0 1em 0 0}
 
 /* hide */
 input[type=submit] {display:none;}

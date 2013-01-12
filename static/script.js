@@ -29,16 +29,16 @@ function doRequest(string){
 		'onRequest': function () {
 			$('antwort').set('html', '<li class="loading">'+
 			'<div class="spinner"><div class="bar1"></div><div class="bar2"></div><div class="bar3"></div><div class="bar4"></div><div class="bar5"></div><div class="bar6"></div><div class="bar7"></div><div class="bar8"></div><div class="bar9"></div><div class="bar10"></div><div class="bar11"></div><div class="bar12"></div></div>'
-			+' warten</li>');
+			+' wait</li>');
 		},
 		'onSuccess': function (data) {
 			$('antwort').set('html', data);
 			//initialize (expanable dir)
 			$isInit_rootInit = $('columns').hasClass('selected');
 			rootInit();
-			$('antwort').getElements('a[data-node-id]').each(function (el) {
+			$('antwort').getElements('a[data-path]').each(function (el) {
 				el.addEvent('click', function (e) {
-					$('suchschlitz').set('value','//dir[db:node-id(.) =' + this.get('data-node-id') + ']/(. | file | dir)')
+					$('suchschlitz').set('value', this.get('data-path')+'/').fireEvent('keyup')
 						.getParent('form').fireEvent('submit');
 					e.preventDefault();
 					return false;
@@ -71,6 +71,16 @@ window.addEvent('domready', function  () {
 		}
 	}).send();
 	
+	$('suchschlitz').addEvents({
+		'keyup': function (e) {
+			$$('label[for=suchschlitz]').set('text',
+				this.get('value').substr(0,1) == '/' ?
+				'/XPath' :
+				(this.get('value').substr(-1,1) == '/' ? 'directory-path/' : 'search term' )
+			);
+		}
+	});
+	
 	
 	// an ajax request on form submit
 	$('suchschlitz').getParent('form').addEvents({
@@ -90,13 +100,13 @@ window.addEvent('domready', function  () {
 			this.addClass('selected');
 			
 // next is optional			$('antwort').getParent().setStyle('max-width','800px');
-			$('antwort').set('class','root');
+			$('antwort').set('class','root js zebra');
 			switch (el.get('id')) {
 				case "list":
-					$('antwort').addClass('indentList').addClass('zebra');
+					$('antwort').addClass('indentList');
 				break;
 				case "columns":
-					$('antwort').addClass('openOnHover').addClass('multiCol').addClass('zebra');
+					$('antwort').addClass('openOnHover').addClass('multiCol');
 // next is optional					$('antwort').getParent().setStyle('max-width','300px');
 					// multiple times initialized is evil
 					if(!$isInit_rootInit) {
@@ -108,37 +118,4 @@ window.addEvent('domready', function  () {
 			}
 		});
 	});
-	
-
-/* TODO having string like //*[count(./ancestor-or-self::dir) = 4] --> error
-
-suche letzter / der nicht in [] steht und der direkten Nachbarn / hat (Situation wäre sonsts //)
-entferne hinter diesem gefundenen forward-slash alles und schicke an Server
-// * /
-	// adds a kind of preview for XPath inputs. extracts valid before last ´/´ from XPath and validates
-	$('suchschlitz').addEvents({
-		'keyup': function (e) {
-			var val = $('suchschlitz').get('value'),
-				tmp = null;
-			if (
-				val.substring(0,1) == '/' // checks if XPath is given
-				&& val.lastIndexOf('/') > 0 // minimum two slash in query
-				// has valid path of query changed?
-				&& $queryDisplayed != (
-					tmp = val.substring(0,
-						-1 < (tmp=val.lastIndexOf('//'))
-						?
-						tmp : val.lastIndexOf('/')
-					)
-				)
-				&& tmp.length != $onTheFlyLength // prevent to fire on control-keys
-			) {
-				$queryDisplayed = tmp;
-				doRequest($queryDisplayed);
-				$onTheFlyLength = tmp.length
-			}
-//			console.log($queryDisplayed + '	' + tmp);
-		}
-	});
-/**/
 });

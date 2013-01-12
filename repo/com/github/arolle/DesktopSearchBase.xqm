@@ -15,17 +15,39 @@ import module namespace functx = "http://www.functx.com";
 (:~
  : remove duplicates from given set via grouping
  : 
- : @param $M sequence having attribute "node-id"
+ : @param $attr name of attribute to group by
+ : @param $M sequence having attribute $attr
  : @return sequence $M without duplicates
  :)
 declare
 function fbase:removeDup (
+  $attr as xs:string,
   $M as element()*
 ) as element()* {
   for $x in $M
-  let $id := $x/@node-id
+  let $id := $x/attribute::*[name() = $attr]
   group by $id
   return $x[1]
+};
+
+
+(:~
+ : remove from $dir all nodes
+ : having exactly one child (being <dir/>)
+ : 
+ : @param $dirs dir nodes
+ : @param $files file nodes
+ : @return dir elements
+ :)
+declare
+function fbase:rmdirWdirChild (
+  $dirs as element(dir)*,
+  $files as element(file)*
+) as element(dir)* {
+  for $x in $dirs
+  where not(count($dirs[@parent-id = $x/@node-id]) = 1
+    and empty($files[$x/@node-id = @parent-id]))
+  return $x
 };
 
 
@@ -60,7 +82,9 @@ declare function fbase:elem($node as node(), $depth as xs:integer) as element() 
   element {name($node)} {
     attribute {'path'} {fbase:pathFromRootNode($node)},
     attribute {'dewey'} {string-join(($node/ancestor-or-self::*/string(db:node-id(.)))[position()>1], '/')},
-    $node/@name,
+    if (name($node) = "dir")
+    then $node/@name
+    else (),
     attribute {'depth'} {$depth},
     attribute {'node-id'} {$node/db:node-id(.)},
     attribute {'parent-id'} {$node/(parent::dir | parent::fsml)/db:node-id(.)} (: performance: group by distinct parents later on, fsml-node has always id 1 :)
@@ -111,8 +135,8 @@ declare function fbase:CSSabbrevName($path as xs:string, $int as xs:integer) as 
     then <span class="prevPath">{string-join($parts[position() < $num], '/')}/</span>
     else (),
     (
-      for $i in $parts[position() = ($num to last()-1)]
-      return ($i, <span>/</span>)
+      for $i in ($num to last()-1)
+      return ($parts[$i], <span>/</span>)
     ),
     $parts[last()]
    )

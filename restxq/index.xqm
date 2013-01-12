@@ -41,13 +41,11 @@ function _:listfsml(
   prof:time(
   try {
     let $dataroot :=
-      try {
+      try { (: TODO check if is fsml database :)
         doc($fsmldb)/fsml/@source/data()
       } catch * {error(xs:QName('FSML1'), 'database does not exist')}
     
-    (: duplicate free matches
-      each entry <file> or <dir>
-    :)
+    (: matches: each entry <file> or <dir> :)
     let $Matches := (
       for $x in (
         (: /XPath means $q is an XPath expression starting with a forward slash :)
@@ -69,14 +67,26 @@ function _:listfsml(
       return fbase:elem($x[1])
     ) (: end let $Matches :)
     
-    let $prof := prof:dump(count($Matches),"cnt ")
-    let $files := $Matches[name(.) = "file"]
-    let $dirs := $Matches[name(.) = "dir"]
-    let $dirs := $dirs union ($files[@parent-id > 1 and not(@parents-id = $dirs/@node-id)] ! fbase:elem(db:open-id($fsmldb, @parent-id))) (: add dirs for parentless files :)
-    let $dirs := $dirs[not(@node-id = $dirs/@parent-id)] (: remove dirs being parents of dirs :)
-    let $dirs := filterdir:lcaSet($dirs, $fsmldb)
+    let $files := $Matches[name() = "file"]
+    let $dirs := $Matches[name() = "dir"]
+    let $dirs :=
+      if ($q eq "") (: all necessary nodes in tree :)
+      then $dirs
+      else (
+        let $dirs := $dirs
+          union (fbase:removeDup("parent-id", $files[@parent-id > 1 and not(@parent-id = $dirs/@node-id)])
+            ! fbase:elem(db:open-id($fsmldb, @parent-id))) (: add dirs for parentless files :)
+        return filterdir:lcaSet($dirs, $fsmldb)
+      )
+    let $dirs := fbase:rmdirWdirChild($dirs, $files)
+    (:let $prof := 
+        prof:dump(
+          for $x in $files union $dirs
+          order by $x/@path
+          return $x, "ordered all elems "
+        ):)
     return filterdir:generateOutput(
-      filterdir:depthCorr(
+        filterdir:depthCorr(
         for $x in $files union $dirs
         order by $x/@dewey
         return $x
