@@ -1,0 +1,183 @@
+/*
+ * A basic stylesheet
+* /
+* {-moz-box-sizing:border-box; -webkit-box-sizing:border-box; box-sizing:border-box;}
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+margin:0; padding:0; border:0; font-size:100%;font:inherit; vertical-align:baseline; }
+:focus { outline:0; }
+/* HTML5 display-role reset for older browsers * /
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section { display:block; }
+body { line-height:1; }
+ol, ul { list-style:none; }
+blockquote, q { quotes:none; }
+blockquote:before, blockquote:after,
+q:before, q:after { content:'';content:none; }
+table { border-collapse:collapse; border-spacing:0; }
+caption, th, td { text-align:left; font-weight:normal; }
+q:lang(de) { quotes:'„' '“' '‚' '‘';}
+q:lang(en) { quotes:'“' '”' "‘" "’";}
+q:lang(fr) { quotes:'«' '»' "‹" "›";}
+/* reset presented by Eric Meyer */
+
+
+html { font-size:100.01%;overflow-y:scroll; }
+body
+{ width:33em; line-height:1em; font-size:100%; background:#FFF; color:#000; /** / background:#FFF url(underline.gif) top left; font-size:10.8px; /**/ margin:0 auto; padding:0 1em; }
+
+/* Thinning Text in Webkit via http://orderedlist.com/ */
+body { -webkit-text-stroke:1px transparent; }
+@media only screen and (max-device-width:480px) { body{-webkit-text-stroke:0 black; }}
+
+
+/* linear; 1.5x 0 .5x; 1x | buildt with 24ways.org/2006/compose-to-a-vertical-rhythm/ */
+h1 { font-size:2.0em; margin:1.25em 0 .416em; line-height:.833em; }
+h2 { font-size:1.8em; margin:1.388em 0 .462em; line-height:.926em; }
+h3 { font-size:1.6em; margin:1.562em 0 .520em; line-height:1.042em; }
+h4 { font-size:1.4em; margin:1.785em 0 .595em; line-height:1.190em; }
+h5 { font-size:1.2em; margin:2.083em 0 .694em; line-height:1.388em; }
+h6 { font-size:1.1em; margin:2.272em 0 .757em; line-height:1.515em; }
+
+p
+{ margin:0 0 1.667em; line-height:1.667em; color:#666; }
+@media print {
+	p { color:#000; }
+}
+
+a:link, a:visited{ text-decoration:underline; padding:1px 2px; }
+a:hover, a:active, a:focus{ text-decoration:none; }
+a:focus { outline:1px dashed #000; }
+@media print {
+	a:link { text-decoration:none; padding:0; }
+	a:link[href^="http"]:after { content:attr(href);}
+}
+
+strong { font-weight:bold; }
+em { font-style:italic; }
+
+sub{ vertical-align:sub; line-height:0; font-size:0.833em; }
+sup{ vertical-align:super; line-height:0; font-size:0.833em; }
+
+abbr, acronym { cursor:help; border-bottom:1px dotted #333; }
+a abbr, a acronym { cursor:pointer; }
+
+ul, ol { padding:.833em 0; }
+ol { padding-left:1.667em; }
+ul ul,
+ol ol { padding-left:1.667em}
+
+
+ul li,
+ol li { line-height:1.667em; list-style-position:outside; }
+ol li { list-style:decimal; }
+ul li { list-style:disc outside url(ulli.png);}
+
+table{ border-collapse:collapse; }
+table caption{ text-indent:-1000em; }/* out of view */
+table thead{ font-style:italic; }
+table tbody{}
+@media print,screen {
+	table tbody tr:nth-child(odd){ background-color:#fff; }
+	table tbody tr:nth-child(even){ background-color:#efefff; }
+}
+table td{ padding-left:1em; line-height:1.667em; }
+table tfoot{}
+
+
+dl { padding:0 0 0.833em 0; line-height:1.667em; }
+
+dl dt { margin:0 0 0 -.833em; font-weight:bold; }
+dl dd {}
+
+figure { display:block; text-align:center; margin:.833em; padding:.833em; }
+figure figcaption { display:block; padding:0.833em 1.667em; }
+figure pre{ text-align:left; }
+figure img{}
+
+blockquote { margin:0; padding:0 1.667em; }
+
+cite { text-align:right; display:block; margin:-1.667em 0 0; }/* font-variant:small-caps; */
+
+/*{ border:1px solid red; }/**/
+
+code { padding:2px 3px; }
+pre { margin:.5em -.833em; padding:.5em .833em; font-size:1em; line-height:1.667em; }
+pre { word-wrap:break-word; }
+
+samp, code, pre { font-family:Monaco,Consolas,'Bitstream Vera Sans Mono',monospace; color:#888; background:#FFE; }
+pre code { background:transparent; }
+@media print {
+	samp, code, pre { color:#666; background:transparent; }
+}
+
+samp { background:transparent; font-size:.833em; }
+
+hr { border:0; border-top:1px solid #ccc; color:#ccc; background:#ccc; height:1px; width:95%;margin:.833em auto; }
+
+/* form styling * /
+form p { margin:0; position:relative; }
+label, input, textarea { font:inherit; line-height:inherit; margin:.833em 0; }
+input[type=submit] { margin:0 0 1.667em 0; }
+
+label, label+input, textarea { width:100%;}
+input, textarea { margin-left:-.416em; margin-right:-.416em; padding-left:.416em; padding-right:.416em; }
+label { position:absolute; right:0; text-align:right; }
+
+input+label { width:auto; position:static; text-align:left; }
+input[type=checkbox],
+input[type=radio] { margin-left:.416em; margin-right:.416em; }
+/* put label+input instead of input[type=text],input[type=url] */
+label { cursor:pointer; }
+select { background-color:transparent; } /* webkit inheritance problem*/
+/*input:focus { outline:1px dotted #666; }
+
+/* classes */
+.left { float:left; }
+.right { float:right; }
+figure.left, img.left { margin:.455em .833em .455em 0; }
+figure.right, img.right { margin:.455em 0 .455em .833em; }
+figure.left figcaption{ clear:left; }
+figure.right figcaption{ clear:right; }
+.center { text-align:center; }
+span.amp { font-family:Baskerville,Palatino,'Book Antiqua',serif; font-style:italic; }
+.hide { position:absolute; top:-999em; left:-999em; opacity:0.0001; }
+.note { background:#FFFFCA; border:1px solid #ccc; border-color:#ccc #ccc #999; padding:.833em 1.667em; color:#333; }
+.tooltip { display:block; background:InfoBackground; color:InfoText; font:small-caption; padding:2px 2px 2px 4px; border:1px solid; border-color:ButtonShadow ButtonHighlight ButtonHighlight ButtonShadow; }
+
+/* http://nicolasgallagher.com/micro-clearfix-hack/ */
+/* For modern browsers  */
+.cf:before,
+.cf:after {
+    content:"";
+    display:table;
+}
+.cf:after {
+    clear:both;
+}
+/* For IE 6/7 (trigger hasLayout) */
+.cf {
+    zoom:1;
+}
+
+/*
+ * visual disappearance of text
+ * http://www.zeldman.com/2012/03/01/replacing-the-9999px-hack-new-image-replacement/
+ */
+.hide-text {
+text-indent: 100%;
+white-space: nowrap;
+overflow: hidden;
+}
