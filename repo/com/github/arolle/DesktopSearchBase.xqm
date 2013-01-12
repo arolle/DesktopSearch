@@ -31,6 +31,26 @@ function fbase:removeDup (
 };
 
 
+(:~
+ : remove from $dir all nodes
+ : having exactly one child (being <dir/>)
+ : 
+ : @param $dirs dir nodes
+ : @param $files file nodes
+ : @return dir elements
+ :)
+declare
+function fbase:rmdirWdirChild (
+  $dirs as element(dir)*,
+  $files as element(file)*
+) as element(dir)* {
+  for $x in $dirs
+  where not(count($dirs[@parent-id = $x/@node-id]) = 1
+    and empty($files[$x/@node-id = @parent-id]))
+  return $x
+};
+
+
 (: echo path to given node, from root node :)
 declare function fbase:pathFromRootNode($element as node()) as xs:string {
   $element/string-join(ancestor-or-self::*/@name, '/')
@@ -115,8 +135,8 @@ declare function fbase:CSSabbrevName($path as xs:string, $int as xs:integer) as 
     then <span class="prevPath">{string-join($parts[position() < $num], '/')}/</span>
     else (),
     (
-      for $i in $parts[position() = ($num to last()-1)]
-      return ($i, <span>/</span>)
+      for $i in ($num to last()-1)
+      return ($parts[$i], <span>/</span>)
     ),
     $parts[last()]
    )

@@ -20,7 +20,7 @@ function _:listdbs() as element(option)*
     order by $y
     return
       <option value="{$x}">{
-        $x || " (" || count(doc($x)//(dir|file)) || " Knoten)"
+        $x || " (" || count(doc($x)//(dir|file)) || " nodes)"
       }</option>  
 (:  }</select>:)
 };
@@ -41,7 +41,7 @@ function _:listfsml(
   prof:time(
   try {
     let $dataroot :=
-      try {
+      try { (: TODO check if is fsml database :)
         doc($fsmldb)/fsml/@source/data()
       } catch * {error(xs:QName('FSML1'), 'database does not exist')}
     
@@ -69,8 +69,16 @@ function _:listfsml(
     
     let $files := $Matches[name() = "file"]
     let $dirs := $Matches[name() = "dir"]
-    let $dirs := $dirs union fbase:removeDup("parent-id", $files[@parent-id > 1 and not(@parent-id = $dirs/@node-id)]) ! fbase:elem(db:open-id($fsmldb, @parent-id)) (: add dirs for parentless files :)
-    let $dirs := filterdir:lcaSet($dirs, $fsmldb)
+    let $dirs :=
+      if ($q eq "") (: all necessary nodes in tree :)
+      then $dirs
+      else (
+        let $dirs := $dirs
+          union (fbase:removeDup("parent-id", $files[@parent-id > 1 and not(@parent-id = $dirs/@node-id)])
+            ! fbase:elem(db:open-id($fsmldb, @parent-id))) (: add dirs for parentless files :)
+        return filterdir:lcaSet($dirs, $fsmldb)
+      )
+    let $dirs := fbase:rmdirWdirChild($dirs, $files)
     (:let $prof := 
         prof:dump(
           for $x in $files union $dirs
@@ -78,7 +86,7 @@ function _:listfsml(
           return $x, "ordered all elems "
         ):)
     return filterdir:generateOutput(
-      filterdir:depthCorr(
+        filterdir:depthCorr(
         for $x in $files union $dirs
         order by $x/@dewey
         return $x

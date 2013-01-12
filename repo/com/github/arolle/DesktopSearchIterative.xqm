@@ -35,20 +35,31 @@ declare function _:lcaSet(
       (: minimum set for which to get lcas, i.e.
         exclude childs of root from lca search
         and lca only for all different @parent-id nodes :)
-      let $minLcaSet := fbase:removeDup("parent-id", $M[@parent-id > 1])
+      let $minLcaSet := 
+        for $x in $M[@parent-id > 1]
+        let $id := $x/@parent-id
+        group by $id
+        return (
+          if (count($x) > 1)
+          then fbase:elem(db:open-id($DB, $id), xs:integer($x[1]/@depth) -1)
+          else $x[1]
+        )
       (: remove dirs being parents of dirs :)
       let $minLcaSet := $minLcaSet[not(@node-id = $minLcaSet/@parent-id)]
-      
       let $num := count($minLcaSet)
-      for $i in 1 to $num -1
-      for $j in $i+1 to $num
-      let $lca := fbase:lca(
-        db:open-id($DB, $minLcaSet[$i]/@node-id),
-        db:open-id($DB, $minLcaSet[$j]/@node-id)
+      return (
+        $minLcaSet,
+
+        for $i in 1 to $num -1
+        for $j in $i+1 to $num
+        let $lca := fbase:lca(
+          db:open-id($DB, $minLcaSet[$i]/@node-id),
+          db:open-id($DB, $minLcaSet[$j]/@node-id)
+        )
+        return if($lca[2])
+          then fbase:elem($lca[2], $lca[1])
+          else ()
       )
-      return if($lca[2])
-        then fbase:elem($lca[2], $lca[1])
-        else ()
     )
   )
 };
@@ -113,13 +124,11 @@ declare function _:generateOutput(
       return
       <li>{
         if ($subNodes or empty(db:open-id($DB, $x/@node-id)/(dir|file)))
-        then (<a>{$node-name}</a>)
-        else (<a data-node-id="{$x/@node-id}">{$node-name}</a>)
+        then <a>{$node-name}</a>
+        else <a data-path="{$x/@path}">{$node-name}</a>
       }{
         if ($subNodes)
-        then (
-          <ul>{_:generateOutput($subNodes, $DB, $dataRoot, $serverRoot)}</ul>
-        )
+        then <ul>{_:generateOutput($subNodes, $DB, $dataRoot, $serverRoot)}</ul>
         else ()
       }</li>
     )
