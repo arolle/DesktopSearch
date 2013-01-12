@@ -1,6 +1,6 @@
-data/IliasInf
-data/IliasErzWiss
+nohup.out
+data/*
 data/.logs
-TODO.txt
-restxq/test.xq
+*.txt
+test
 target
